@@ -35,14 +35,10 @@ void main(void)
 	delayMs(1000);
 	
 	SetRS485AsTxdMode();
-	uart1PutStr("STC15W204S1....\r\n",sizeof("STC15W204S1....\r\n"));
+	uart1PutStr("I'm YOC...\r\n",sizeof("I'm YOC...\r\n"));
 	SetRS485AsRxdMode();
 	while(1)
 	{
-		//if(uart1IsNotEmpty())
-		//{
-		//	uart1PutCh(0xFF);uart1PutCh(0xFF);
-		//}
 		BT_task();
 		delayMs(50);
 	}

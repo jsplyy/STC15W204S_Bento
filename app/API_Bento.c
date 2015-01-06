@@ -140,10 +140,8 @@ unsigned char BT_recv_cmd()
 	if(!uart1IsNotEmpty())
 		return 0;
 	recvbuf[index++] = uart1GetCh();
-	
 	if(recvbuf[PC_HEAD] != BT_START)
 		return 2;
-	
 	uartTimeout = 20; //接收剩余数据//200ms超时
 	while(uartTimeout)
 	{
@@ -166,7 +164,8 @@ unsigned char BT_recv_cmd()
 					return 2;
 			}
 			else
-				return 2;
+				_nop_();
+			
 		}
 		else
 			_nop_();
@@ -258,7 +257,7 @@ void BT_config_req()
 	}
 	else
 		return;
-	BT_send_data(data1, data1);
+	BT_send_data(data1, data2);
 
 }
 
@@ -296,7 +295,7 @@ void BT_task(void)
 
 	if(irTimeout == 0)
 	{
-		irTimeout = 10;//100ms扫描
+		irTimeout = 30;//100ms扫描
 		if(ir_choose == 0)
 		{
 			ir_choose = 1;

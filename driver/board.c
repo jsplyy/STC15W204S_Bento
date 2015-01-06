@@ -194,7 +194,7 @@ void systemInit(void)
 *********************************************************************************************************/
 void SetRS485AsTxdMode(void)
 {	
-	//RS485_ENABLE = 1;
+	RS485_ENABLE = 1;
 	//_nop_();_nop_();
 	RS485_74HC123_nB= 0;
 	_nop_();_nop_();
@@ -214,7 +214,7 @@ void SetRS485AsTxdMode(void)
 void SetRS485AsRxdMode(void)
 {
 	RS485_74HC123_nB  = 0;
-	//RS485_ENABLE = 0;
+	RS485_ENABLE = 0;
 }
 
 
@@ -232,18 +232,22 @@ unsigned char DB_openAdoor()
 	IO_DOOR_A_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
 	{
+		IO_DOOR_A_PULSE = 0;_nop_();
 		IO_DOOR_A_PULSE = 1;
 		ioTimeout = 30;//100ms
 		while(ioTimeout)
 		{
-			if(IO_DOOR_A_SIGNAL == 0)//
+			if(IO_DOOR_A_SIGNAL == 0)//¿ªËø³É¹¦
 			{
 				IO_DOOR_A_OUT = 0;
 				return 1;
 			}	
 			else
+			{
 				_nop_();
-		}	
+			}
+		}
+		delayMs(500);
 	}
 	IO_DOOR_A_OUT = 0;	
 	return 0;
@@ -256,6 +260,7 @@ unsigned char DB_openBdoor()
 	IO_DOOR_B_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
 	{
+		IO_DOOR_A_PULSE = 0;_nop_();
 		IO_DOOR_B_PULSE = 1;
 		ioTimeout = 30;//100ms
 		while(ioTimeout)
@@ -267,7 +272,8 @@ unsigned char DB_openBdoor()
 			}	
 			else
 				_nop_();
-		}	
+		}
+		delayMs(500);
 	}
 	IO_DOOR_B_OUT = 0;	
 	return 0;
