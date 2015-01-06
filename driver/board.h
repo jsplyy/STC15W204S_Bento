@@ -22,6 +22,16 @@ sbit IO_DOOR_B    = P3^7;//B柜 门IO口
 
 
 
+
+// A B两柜地址
+#define BT_CABINET_A	0
+#define BT_CABINET_B	1
+#define BT_CABINET_NO	0xAA
+#define BT_CABINET_CON	0xFF  //配置命令
+
+
+
+
 /*********************************************************************************************************
 **定义通用宏函数
 *********************************************************************************************************/
@@ -37,7 +47,6 @@ void delayMs(unsigned int ms);
 void systemInit(void);
 void SetRS485AsTxdMode(void);
 void SetRS485AsRxdMode(void);
-void SetRS485AsTxdMode1(void);
 
 
 

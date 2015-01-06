@@ -15,6 +15,8 @@
 unsigned char data tick;
 unsigned char data second;
 
+unsigned int uartTimeout = 0;
+
 /*********************************************************************************************************
 ** Function name:     	timer0Init
 ** Descriptions:	    定时器0初始化
@@ -50,6 +52,7 @@ void timer0_ISR( void ) interrupt 1 using 1
 	TL0 = T10MS;
     TH0 = T10MS >> 8;
 	tick++;
+	if(uartTimeout) uartTimeout--;
 	if(tick >= 100)
 	{
 		tick = 0;

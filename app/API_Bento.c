@@ -11,18 +11,25 @@
 #include "..\config.h"
 #include "API_Bento.h"
 
-// A B两柜地址
-#define BT_CABINET_A	0
-#define BT_CABINET_B	1
-#define BT_CABINET_NO	0xAA
-#define BT_CABINET_CON	0xFF  //配置命令
 
 
 
 static unsigned char cur_cabinet = BT_CABINET_NO;
-static unsigned char cur_addr = 0,cur_cmd = 0,cur_para = 0xFF,cur_crc;
+//static unsigned char cur_addr = 0,cur_cmd = 0,cur_para = 0xFF,cur_crc;
 
 
+
+
+#define PC_HEAD 		0
+#define PC_ADDR			1
+#define PC_CMD			2
+#define PC_PARA			3
+#define PC_CRC			4
+#define PC_END			5
+#define PC_LEN			6
+
+
+static unsigned char recvbuf[8] = {0};
 
 
 ST_CABINET_DATA st_A,st_B;
@@ -80,12 +87,12 @@ void BT_write_flash(unsigned char cabinet,unsigned char addr)
 unsigned char BT_send_data(unsigned char data1,unsigned char data2)
 {
 	unsigned char crc = 0;
-	crc = cur_addr + cur_cmd + data1  + data2;
+	crc = recvbuf[PC_ADDR] + recvbuf[PC_CMD] + data1  + data2;
 	uart1Clear();
 	SetRS485AsTxdMode();
 	uart1PutCh(BT_START);	//同步码
-	uart1PutCh(cur_addr);		//柜子号码
-	uart1PutCh(cur_cmd);		//命令码
+	uart1PutCh(recvbuf[PC_ADDR]);		//柜子号码
+	uart1PutCh(recvbuf[PC_CMD]);		//命令码
 	uart1PutCh(data1);		//门状态
 	uart1PutCh(data2);		//物品状态
 	uart1PutCh(crc);		//校验码
@@ -129,28 +136,34 @@ unsigned char BT_send_state()
 *********************************************************************************************************/
 unsigned char BT_recv_cmd()
 {
-	unsigned char temp;
+	unsigned char index = 0,temp;
 	if(!uart1IsNotEmpty())
 		return 0;
-	temp = uart1GetCh();
-	if(temp != BT_START)
-		return 2;
-	_nop_();
-	cur_addr = uart1GetCh();cur_crc = cur_addr;
-	cur_cmd = uart1GetCh();	cur_crc += cur_cmd;
-	cur_para = uart1GetCh();cur_crc += cur_para;	
-
-	temp = uart1GetCh();//crc	
-	if(temp != cur_crc)//校验码不正确
-		return 2;
-	temp = uart1GetCh();//end
-	if(temp != BT_PC_STOP)//结束吗不正确
+	recvbuf[index++] = uart1GetCh();
+	if(recvbuf[PC_HEAD] != BT_START)
 		return 2;
 	
-	return 1;
-
-
-	
+	uartTimeout = 20; //接收剩余数据//200ms超时
+	while(uartTimeout)
+	{
+		if(uart1IsNotEmpty())
+		{
+			recvbuf[index++] = uart1GetCh();
+			if(index >= PC_LEN && recvbuf[PC_END] == BT_PC_STOP )//收到结束码 且长度正确
+			{
+				temp = recvbuf[PC_ADDR] +recvbuf[PC_CMD]+recvbuf[PC_PARA];
+				if(temp == recvbuf[PC_CRC])//校验码也正确 白哦是收到正确指令
+					return 1;
+				else 
+					return 2;
+			}
+			else
+				return 2;
+		}
+		else
+			_nop_();
+	}
+	return 2;
 }
 
 
@@ -165,9 +178,9 @@ unsigned char BT_recv_cmd()
 void BT_handle_req()
 {
 	
-	if(cur_cmd == BT_OPEN_REQ) //开门命令
+	if(recvbuf[PC_CMD] == BT_OPEN_REQ) //开门命令
 	{
-		if(cur_addr == st_A.addr)
+		if(recvbuf[PC_ADDR] == st_A.addr)
 		{
 			DB_opendoor(BT_CABINET_A);
 			DB_goodsNotEmpty(1);
@@ -180,14 +193,14 @@ void BT_handle_req()
 			BT_send_data(st_B.door,st_B.goods);
 		}
 	}
-	else if(cur_cmd == BT_DOOR_STATE_REQ || cur_cmd == BT_IR_STATE_REQ)//查询门状态//查询红外线状态
+	else if(recvbuf[PC_CMD] == BT_DOOR_STATE_REQ || recvbuf[PC_CMD] == BT_IR_STATE_REQ)//查询门状态//查询红外线状态
 	{
-		if(cur_addr == st_A.addr)
+		if(recvbuf[PC_ADDR] == st_A.addr)
 			BT_send_data(st_A.door,st_A.goods);		
 		else
 			BT_send_data(st_B.door,st_B.goods);
 	}
-	else if(cur_cmd == BT_REAL_TIME_REQ)//查询实时状态
+	else if(recvbuf[PC_CMD] == BT_REAL_TIME_REQ)//查询实时状态
 		BT_send_state();
 	else 
 		_nop_();
@@ -207,31 +220,31 @@ void BT_handle_req()
 void BT_config_req()
 {
 	unsigned char data1,data2;
-	if(cur_cmd == BT_CONFIG_START_REQ)
+	if(recvbuf[PC_CMD] == BT_CONFIG_START_REQ)
 	{
 		data1 = rand();
 		data2 = data1 + 1;
 	}
-	else if(cur_cmd == BT_CONFIG_A_REQ)
+	else if(recvbuf[PC_CMD] == BT_CONFIG_A_REQ)
 	{
-		BT_write_flash(BT_CABINET_A,cur_para);
+		BT_write_flash(BT_CABINET_A,recvbuf[PC_PARA]);
 		data1 = 0;data2 = 0;
-		cur_addr = cur_para;
+		recvbuf[PC_ADDR] = recvbuf[PC_PARA];
 	}
-	else if(cur_cmd == BT_CONFIG_B_REQ)
+	else if(recvbuf[PC_CMD] == BT_CONFIG_B_REQ)
 	{
-		BT_write_flash(BT_CABINET_B,cur_para);
+		BT_write_flash(BT_CABINET_B,recvbuf[PC_PARA]);
 		data1 = 0;data2 = 0;
-		cur_addr = cur_para;
+		recvbuf[PC_ADDR] = recvbuf[PC_PARA];
 	}
-	else if(cur_cmd == BT_CONFIG_CHECK_REQ)
+	else if(recvbuf[PC_CMD] == BT_CONFIG_CHECK_REQ)
 	{
 		data1 = st_A.addr;
 		data2 = st_B.addr;
 	}
-	else if(cur_cmd == BT_CONFIG_TEST_REQ)//进入生产测试模式
+	else if(recvbuf[PC_CMD] == BT_CONFIG_TEST_REQ)//进入生产测试模式
 	{
-	
+		return;
 	}
 	else
 		return;
@@ -256,17 +269,19 @@ void BT_task(void)
 	res = BT_recv_cmd();//接收数据 
 	if(res == 1)//有回应 并且数据正确 
 	{
-		if(cur_addr == 0xFF) //配置模式
+		if(recvbuf[PC_ADDR] == 0xFF) //配置模式
 		{
 			BT_config_req();
 		}
-		else if(cur_addr == st_A.addr || cur_addr == st_B.addr)//柜命令
+		else if(recvbuf[PC_ADDR] == st_A.addr || recvbuf[PC_ADDR] == st_B.addr)//柜命令
 		{
 			BT_handle_req();//处理命令 并发送回应
 		}
 		else  //不是本机的命令直接抛弃
 			_nop_();
 	}
+	else
+		return;
 
 }
 
