@@ -140,6 +140,7 @@ unsigned char BT_recv_cmd()
 	if(!uart1IsNotEmpty())
 		return 0;
 	recvbuf[index++] = uart1GetCh();
+	
 	if(recvbuf[PC_HEAD] != BT_START)
 		return 2;
 	
@@ -153,7 +154,14 @@ unsigned char BT_recv_cmd()
 			{
 				temp = recvbuf[PC_ADDR] +recvbuf[PC_CMD]+recvbuf[PC_PARA];
 				if(temp == recvbuf[PC_CRC])//校验码也正确 白哦是收到正确指令
-					return 1;
+				{
+				#if (BT_CALL_DIS == 1)
+					SetRS485AsTxdMode();
+					uart1PutStr(recvbuf,PC_LEN);
+					SetRS485AsRxdMode();
+				#endif
+					return 1;				
+				}
 				else 
 					return 2;
 			}
@@ -182,14 +190,14 @@ void BT_handle_req()
 	{
 		if(recvbuf[PC_ADDR] == st_A.addr)
 		{
-			DB_opendoor(BT_CABINET_A);
-			DB_goodsNotEmpty(1);
-			DB_ledControl(1);
+			st_A.door = DB_openAdoor();
+			st_A.goods = DB_AgoodsFull();
 			BT_send_data(st_A.door,st_A.goods);
 		}			
 		else
 		{
-			DB_opendoor(BT_CABINET_B);
+			st_B.door = DB_openBdoor();
+			st_B.goods = DB_BgoodsFull();
 			BT_send_data(st_B.door,st_B.goods);
 		}
 	}
@@ -244,6 +252,8 @@ void BT_config_req()
 	}
 	else if(recvbuf[PC_CMD] == BT_CONFIG_TEST_REQ)//进入生产测试模式
 	{
+		if(DB_AgoodsFull()) DB_openAdoor();
+		if(DB_BgoodsFull()) DB_openBdoor();
 		return;
 	}
 	else
@@ -266,6 +276,7 @@ void BT_config_req()
 void BT_task(void)
 {
 	unsigned char res;
+	static unsigned char ir_choose = 0;
 	res = BT_recv_cmd();//接收数据 
 	if(res == 1)//有回应 并且数据正确 
 	{
@@ -281,7 +292,23 @@ void BT_task(void)
 			_nop_();
 	}
 	else
-		return;
+		_nop_();
+
+	if(irTimeout == 0)
+	{
+		irTimeout = 10;//100ms扫描
+		if(ir_choose == 0)
+		{
+			ir_choose = 1;
+			DB_AgoodsFull();
+		}
+		else 
+		{
+			ir_choose = 0;
+			DB_BgoodsFull();
+		}
+		
+	}
 
 }
 

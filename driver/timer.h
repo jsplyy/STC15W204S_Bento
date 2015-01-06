@@ -13,6 +13,9 @@
 #define _TIMER_H_
 extern unsigned char second;
 extern unsigned int uartTimeout;
+extern unsigned int ioTimeout;
+extern unsigned int irTimeout;
+
 void timer0Init(void);
 
 

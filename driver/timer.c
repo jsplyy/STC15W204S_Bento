@@ -16,6 +16,10 @@ unsigned char data tick;
 unsigned char data second;
 
 unsigned int uartTimeout = 0;
+unsigned int ioTimeout = 0;
+unsigned int irTimeout = 0;
+
+
 
 /*********************************************************************************************************
 ** Function name:     	timer0Init
@@ -53,6 +57,8 @@ void timer0_ISR( void ) interrupt 1 using 1
     TH0 = T10MS >> 8;
 	tick++;
 	if(uartTimeout) uartTimeout--;
+	if(ioTimeout) ioTimeout--;
+	if(irTimeout) irTimeout--;
 	if(tick >= 100)
 	{
 		tick = 0;

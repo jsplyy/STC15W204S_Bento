@@ -19,6 +19,10 @@ sbit IO_LED   = P0^7;
 
 
 
+
+
+
+
 /*********************************************************************************************************
 **EEPROM 读写程序
 **add by yoc  2015.1.3
@@ -169,8 +173,13 @@ void systemInit(void)
 	uart1Init();
 
 
-	IO_DOOR_A = 0;
-	IO_DOOR_B = 0;
+	IO_DOOR_A_OUT = 0;
+	IO_DOOR_B_OUT = 0;
+
+	IO_LED_A = 0;
+	IO_LED_B = 0;
+	IO_IR_A_OUT  = 0;
+	IO_IR_B_OUT  = 0;
 
 	RS485_ENABLE = 1;//开启485发送模式
 }
@@ -186,6 +195,7 @@ void systemInit(void)
 void SetRS485AsTxdMode(void)
 {	
 	//RS485_ENABLE = 1;
+	//_nop_();_nop_();
 	RS485_74HC123_nB= 0;
 	_nop_();_nop_();
 	RS485_74HC123_nB = 1;
@@ -204,50 +214,113 @@ void SetRS485AsTxdMode(void)
 void SetRS485AsRxdMode(void)
 {
 	RS485_74HC123_nB  = 0;
-	
 	//RS485_ENABLE = 0;
-	//delayMs(500);
 }
 
 
 
 /*********************************************************************************************************
 ** Function name:     	DB_opendoor
-** Descriptions:	    开锁
-** input parameters:    no 1:A柜  2:B 柜 
+** Descriptions:	    
+** input parameters:    
 ** output parameters:   
 ** Returned value:      1成功 0失败
 *********************************************************************************************************/
-unsigned char DB_opendoor(unsigned char no)
+unsigned char DB_openAdoor()
 {
-	no = no;
-	return no;
+	unsigned char i;
+	IO_DOOR_A_OUT = 1;
+	for(i = 0;i < BT_OPEN_RCX;i++)
+	{
+		IO_DOOR_A_PULSE = 1;
+		ioTimeout = 30;//100ms
+		while(ioTimeout)
+		{
+			if(IO_DOOR_A_SIGNAL == 0)//
+			{
+				IO_DOOR_A_OUT = 0;
+				return 1;
+			}	
+			else
+				_nop_();
+		}	
+	}
+	IO_DOOR_A_OUT = 0;	
+	return 0;
+	
 }
 
+unsigned char DB_openBdoor()
+{
+	unsigned char i;
+	IO_DOOR_B_OUT = 1;
+	for(i = 0;i < BT_OPEN_RCX;i++)
+	{
+		IO_DOOR_B_PULSE = 1;
+		ioTimeout = 30;//100ms
+		while(ioTimeout)
+		{
+			if(IO_DOOR_B_SIGNAL == 0)//
+			{
+				IO_DOOR_B_OUT = 0;
+				return 1;
+			}	
+			else
+				_nop_();
+		}	
+	}
+	IO_DOOR_B_OUT = 0;	
+	return 0;
+}
+
+
 /*********************************************************************************************************
-** Function name:     	DB_goodsNotEmpty
-** Descriptions:	    查询货物检测
-** input parameters:    no 1:A柜  2:B 柜 
+** Function name:     	DB_AgoodsEmpty
+** Descriptions:	   
+** input parameters:    
 ** output parameters:   
 ** Returned value:      0无货  1有货
 *********************************************************************************************************/
-unsigned char DB_goodsNotEmpty(unsigned char no)
+unsigned char DB_AgoodsFull()
 {
-	no = no;return no;
+	IO_IR_A_OUT = 1;
+	delayMs(10);
+	if(IO_IR_A_SIGNAL == 0)//not empty
+	{
+		IO_IR_A_OUT = 0;
+		DB_ledAControl(0);
+		return 1;
+	}
+	else
+	{
+		IO_IR_A_OUT = 0;
+		DB_ledAControl(1);
+		return 0;
+	}
+	return 0;
 }
 
 
-/*********************************************************************************************************
-** Function name:     	DB_ledControl
-** Descriptions:	    照明控制
-** input parameters:    no 1:A柜  2:B 柜 
-** output parameters:   
-** Returned value:      1成功  0失败
-*********************************************************************************************************/
-unsigned char DB_ledControl(unsigned char no)
+unsigned char DB_BgoodsFull()
 {
-	no = no;return no;
+	IO_IR_B_OUT = 1;
+	delayMs(10);
+	if(IO_IR_B_SIGNAL == 0)//not empty
+	{
+		IO_IR_B_OUT = 0;
+		DB_ledBControl(0);		
+		return 1;
+	}
+	else
+	{
+		IO_IR_B_OUT = 0;
+		DB_ledBControl(1);
+		return 0;
+	}
+	return 0;
 }
+
+
 
 
 

@@ -34,6 +34,8 @@
 #define BT_ADDR_FLASH_PAGE	0x0000
 
 
+#define BT_CALL_DIS			0 //∂®“Âªÿœ‘
+
 typedef struct _st_cabinet_data_{
 
 	unsigned char addr;
