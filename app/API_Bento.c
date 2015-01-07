@@ -32,7 +32,7 @@ static unsigned char cur_cabinet = BT_CABINET_NO;
 static unsigned char recvbuf[8] = {0};
 
 
-ST_CABINET_DATA st_A,st_B;
+
 
 
 
@@ -203,12 +203,24 @@ void BT_handle_req()
 	else if(recvbuf[PC_CMD] == BT_DOOR_STATE_REQ || recvbuf[PC_CMD] == BT_IR_STATE_REQ)//查询门状态//查询红外线状态
 	{
 		if(recvbuf[PC_ADDR] == st_A.addr)
-			BT_send_data(st_A.door,st_A.goods);		
+		{
+			st_A.goods = DB_AgoodsFull();
+			BT_send_data(st_A.door,st_A.goods);	
+		}	
 		else
+		{
+			st_B.goods = DB_BgoodsFull();
 			BT_send_data(st_B.door,st_B.goods);
+		}
+			
 	}
 	else if(recvbuf[PC_CMD] == BT_REAL_TIME_REQ)//查询实时状态
+	{
+		st_A.goods = DB_AgoodsFull();
+		st_B.goods = DB_BgoodsFull();
 		BT_send_state();
+	}
+		
 	else 
 		_nop_();
 	
@@ -237,12 +249,14 @@ void BT_config_req()
 		BT_write_flash(BT_CABINET_A,recvbuf[PC_PARA]);
 		data1 = 0;data2 = 0;
 		recvbuf[PC_ADDR] = recvbuf[PC_PARA];
+		BT_read_flash();
 	}
 	else if(recvbuf[PC_CMD] == BT_CONFIG_B_REQ)
 	{
 		BT_write_flash(BT_CABINET_B,recvbuf[PC_PARA]);
 		data1 = 0;data2 = 0;
 		recvbuf[PC_ADDR] = recvbuf[PC_PARA];
+		BT_read_flash();
 	}
 	else if(recvbuf[PC_CMD] == BT_CONFIG_CHECK_REQ)
 	{
@@ -279,6 +293,7 @@ void BT_task(void)
 	res = BT_recv_cmd();//接收数据 
 	if(res == 1)//有回应 并且数据正确 
 	{
+		delayMs(50);
 		if(recvbuf[PC_ADDR] == 0xFF) //配置模式
 		{
 			BT_config_req();
@@ -293,9 +308,10 @@ void BT_task(void)
 	else
 		_nop_();
 
+	
+#if 0
 	if(irTimeout == 0)
 	{
-		irTimeout = 30;//100ms扫描
 		if(ir_choose == 0)
 		{
 			ir_choose = 1;
@@ -306,8 +322,10 @@ void BT_task(void)
 			ir_choose = 0;
 			DB_BgoodsFull();
 		}
+		irTimeout = 50;//100ms扫描
 		
 	}
+#endif
 
 }
 

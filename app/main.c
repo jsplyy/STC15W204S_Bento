@@ -40,7 +40,7 @@ void main(void)
 	while(1)
 	{
 		BT_task();
-		delayMs(50);
+		delayMs(100);
 	}
 			
 }

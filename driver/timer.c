@@ -18,7 +18,7 @@ unsigned char data second;
 unsigned int uartTimeout = 0;
 unsigned int ioTimeout = 0;
 unsigned int irTimeout = 0;
-
+unsigned int ireTimeout = 0;
 
 
 /*********************************************************************************************************
@@ -59,6 +59,7 @@ void timer0_ISR( void ) interrupt 1 using 1
 	if(uartTimeout) uartTimeout--;
 	if(ioTimeout) ioTimeout--;
 	if(irTimeout) irTimeout--;
+	if(ireTimeout) ireTimeout--;
 	if(tick >= 100)
 	{
 		tick = 0;

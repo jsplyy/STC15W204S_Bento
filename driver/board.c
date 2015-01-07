@@ -16,10 +16,7 @@
 
 sbit IO_LED   = P0^7;
 
-
-
-
-
+ST_CABINET_DATA st_A,st_B;
 
 
 
@@ -154,33 +151,41 @@ void delayMs(unsigned int ms)
 *********************************************************************************************************/
 void InitGpio(void)
 {
-    P0M1 = 0x00;
-    P0M0 = 0xff;
-    P1M1 = 0x40;	// 01000000b
-    P1M0 = 0xB0;	// 10110000b
+
+	// set P0.0
+	P0M1 = 0x00;
+	P0M0 = 0xFF;
+
+    P1M1 = 0x00;	// 
+    P1M0 = 0x24;	//
+    
     P2M1 = 0x00;
-    P2M0 = 0xff;
-    P3M1 = 0x00;
-    P3M0 = 0x0C;
+    P2M0 = 0xFF;
+    P3M1 = 0x50;
+    P3M0 = 0xAC;
+	P5M1 = 0x10;
+	P5M0 = 0x20;
+
+	//p1.0
+
+
+
+	IO_DOOR_A_OUT = 0;
+	IO_DOOR_B_OUT = 0;
+	IO_LED_A = 0;
+	IO_LED_B = 0;
+	IO_IR_A_OUT  = 0;
+	IO_IR_B_OUT  = 0;
 }
 
 
 
 void systemInit(void)
 {
+
 	InitGpio();
 	timer0Init();
 	uart1Init();
-
-
-	IO_DOOR_A_OUT = 0;
-	IO_DOOR_B_OUT = 0;
-
-	IO_LED_A = 0;
-	IO_LED_B = 0;
-	IO_IR_A_OUT  = 0;
-	IO_IR_B_OUT  = 0;
-
 	RS485_ENABLE = 1;//开启485发送模式
 }
 
@@ -232,9 +237,10 @@ unsigned char DB_openAdoor()
 	IO_DOOR_A_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
 	{
-		IO_DOOR_A_PULSE = 0;_nop_();
+		IO_DOOR_A_PULSE = 0;
+		_nop_();_nop_();
 		IO_DOOR_A_PULSE = 1;
-		ioTimeout = 30;//100ms
+		ioTimeout = 10;//100ms
 		while(ioTimeout)
 		{
 			if(IO_DOOR_A_SIGNAL == 0)//开锁成功
@@ -260,7 +266,8 @@ unsigned char DB_openBdoor()
 	IO_DOOR_B_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
 	{
-		IO_DOOR_A_PULSE = 0;_nop_();
+		IO_DOOR_A_PULSE = 0;
+		_nop_();_nop_();
 		IO_DOOR_B_PULSE = 1;
 		ioTimeout = 30;//100ms
 		while(ioTimeout)
@@ -289,41 +296,72 @@ unsigned char DB_openBdoor()
 *********************************************************************************************************/
 unsigned char DB_AgoodsFull()
 {
+	unsigned char flag = 0;
 	IO_IR_A_OUT = 1;
-	delayMs(10);
-	if(IO_IR_A_SIGNAL == 0)//not empty
+	ireTimeout = 10;
+	while(ireTimeout)
 	{
-		IO_IR_A_OUT = 0;
+		if(IO_IR_A_SIGNAL == 0)//not empty
+		{
+			flag = 1;
+			break;
+			//DB_ledAControl(0);
+		}
+		else
+		{
+			flag = 0;
+			//DB_ledAControl(1);
+		}
+	}
+	
+	IO_IR_A_OUT = 0;
+	st_A.goods = flag;
+	if(IO_DOOR_A_SIGNAL == 1 )//闭锁
+	{
+		st_A.door = 0;
 		DB_ledAControl(0);
-		return 1;
-	}
+	}	
 	else
-	{
-		IO_IR_A_OUT = 0;
+	{ 	
+		st_A.door = 1;
 		DB_ledAControl(1);
-		return 0;
 	}
-	return 0;
+			
+	return flag;
 }
 
 
 unsigned char DB_BgoodsFull()
 {
+	unsigned char flag = 0;
 	IO_IR_B_OUT = 1;
-	delayMs(10);
-	if(IO_IR_B_SIGNAL == 0)//not empty
+	ireTimeout = 10;
+	while(ireTimeout)
 	{
-		IO_IR_B_OUT = 0;
-		DB_ledBControl(0);		
-		return 1;
-	}
+		if(IO_IR_B_SIGNAL == 0)//not empty
+		{
+			flag = 1;
+			break;
+		}	
+		else
+		{
+			flag = 0;
+		}
+	}	
+	IO_IR_B_OUT = 0;
+	st_B.goods = flag;
+	if(IO_DOOR_B_SIGNAL == 1)//闭锁
+	{
+		st_B.door = 0;
+		DB_ledBControl(0);
+	}	
 	else
 	{
-		IO_IR_B_OUT = 0;
+		st_B.door = 1;
 		DB_ledBControl(1);
-		return 0;
 	}
-	return 0;
+		
+	return flag;
 }
 
 

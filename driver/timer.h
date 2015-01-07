@@ -15,7 +15,7 @@ extern unsigned char second;
 extern unsigned int uartTimeout;
 extern unsigned int ioTimeout;
 extern unsigned int irTimeout;
-
+extern unsigned int ireTimeout;
 void timer0Init(void);
 
 

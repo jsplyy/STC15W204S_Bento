@@ -36,15 +36,7 @@
 
 #define BT_CALL_DIS			0 //∂®“Âªÿœ‘
 
-typedef struct _st_cabinet_data_{
 
-	unsigned char addr;
-	unsigned char goods;
-	unsigned char door;
-
-}ST_CABINET_DATA;
-
-extern ST_CABINET_DATA st_A,st_B;
 
 
 void BT_task(void);
