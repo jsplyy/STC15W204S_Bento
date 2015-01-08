@@ -14,10 +14,11 @@
 
 #include "intrins.h"
 
-sbit IO_LED   = P0^7;
 
 ST_CABINET_DATA st_A,st_B;
 
+
+sbit IO_LED   = P0^7;
 
 
 /*********************************************************************************************************
@@ -296,72 +297,51 @@ unsigned char DB_openBdoor()
 *********************************************************************************************************/
 unsigned char DB_AgoodsFull()
 {
-	unsigned char flag = 0;
+	unsigned char rcx = 100;
 	IO_IR_A_OUT = 1;
-	ireTimeout = 10;
-	while(ireTimeout)
+	while(rcx--)
 	{
 		if(IO_IR_A_SIGNAL == 0)//not empty
 		{
-			flag = 1;
-			break;
-			//DB_ledAControl(0);
+			delayMs(2);
+			if(IO_IR_A_SIGNAL == 0) //可判断有货
+			{
+				IO_IR_A_OUT = 0;
+				return 1;
+			}
 		}
 		else
 		{
-			flag = 0;
-			//DB_ledAControl(1);
+			delayMs(1);
 		}
-	}
-	
-	IO_IR_A_OUT = 0;
-	st_A.goods = flag;
-	if(IO_DOOR_A_SIGNAL == 1 )//闭锁
-	{
-		st_A.door = 0;
-		DB_ledAControl(0);
 	}	
-	else
-	{ 	
-		st_A.door = 1;
-		DB_ledAControl(1);
-	}
-			
-	return flag;
+	IO_IR_A_OUT = 0;			
+	return 0;
 }
 
 
 unsigned char DB_BgoodsFull()
 {
-	unsigned char flag = 0;
+	unsigned char rcx = 100;
 	IO_IR_B_OUT = 1;
-	ireTimeout = 10;
-	while(ireTimeout)
-	{
+	while(rcx--)
+	{		
 		if(IO_IR_B_SIGNAL == 0)//not empty
 		{
-			flag = 1;
-			break;
+			delayMs(2);
+			if(IO_IR_B_SIGNAL == 0) //可判断有货
+			{
+				IO_IR_B_OUT = 0;
+				return 1;
+			}			
 		}	
 		else
 		{
-			flag = 0;
+			delayMs(1);
 		}
 	}	
-	IO_IR_B_OUT = 0;
-	st_B.goods = flag;
-	if(IO_DOOR_B_SIGNAL == 1)//闭锁
-	{
-		st_B.door = 0;
-		DB_ledBControl(0);
-	}	
-	else
-	{
-		st_B.door = 1;
-		DB_ledBControl(1);
-	}
-		
-	return flag;
+	IO_IR_B_OUT = 0;		
+	return 0;
 }
 
 

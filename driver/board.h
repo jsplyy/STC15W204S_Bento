@@ -46,13 +46,12 @@ sbit IO_LED_B		= P1^2;//设为高电平开照明灯，低电平关灯。
 typedef struct _st_cabinet_data_{
 
 	unsigned char addr;
-	unsigned char goods;
-	unsigned char door;
+	volatile unsigned char goods;
+	volatile unsigned char door;
 
 }ST_CABINET_DATA;
 
 extern ST_CABINET_DATA st_A,st_B;
-
 
 
 /*********************************************************************************************************

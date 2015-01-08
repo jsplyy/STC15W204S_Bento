@@ -25,11 +25,7 @@
 *********************************************************************************************************/
 
 void main(void)
-{
-	unsigned char ch = 0;
-	unsigned int i = 0;
-	unsigned int temp= 0;
-	
+{	
 	systemInit();
 	BT_read_flash();
 	delayMs(1000);
@@ -40,7 +36,8 @@ void main(void)
 	while(1)
 	{
 		BT_task();
-		delayMs(100);
+		delayMs(50);
+		
 	}
 			
 }

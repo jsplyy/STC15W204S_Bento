@@ -11,11 +11,11 @@
 
 #ifndef _TIMER_H_
 #define _TIMER_H_
-extern unsigned char second;
-extern unsigned int uartTimeout;
-extern unsigned int ioTimeout;
-extern unsigned int irTimeout;
-extern unsigned int ireTimeout;
+
+extern volatile unsigned int uartTimeout;
+extern volatile unsigned int ioTimeout;
+
+
 void timer0Init(void);
 
 

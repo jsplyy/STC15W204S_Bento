@@ -12,13 +12,13 @@
 
 #define T10MS 			(0xDC00) //(65536 - 11059200 / 12 / 100)  == 0xDC00
 
-unsigned char data tick;
-unsigned char data second;
+volatile unsigned char data tick;
 
-unsigned int uartTimeout = 0;
-unsigned int ioTimeout = 0;
-unsigned int irTimeout = 0;
-unsigned int ireTimeout = 0;
+
+volatile unsigned int uartTimeout = 0;
+volatile unsigned int ioTimeout = 0;
+
+
 
 
 /*********************************************************************************************************
@@ -36,7 +36,6 @@ void timer0Init(void)
 	TL0 = T10MS;
     TH0 = T10MS >> 8;
 	tick = 0;
-	second = 0;
 	TR0 = 1; //timer0 start running
 	ET0 = 1;//enable timer0 interrupt
 	EA = 1;//enable global interrupt
@@ -58,13 +57,29 @@ void timer0_ISR( void ) interrupt 1 using 1
 	tick++;
 	if(uartTimeout) uartTimeout--;
 	if(ioTimeout) ioTimeout--;
-	if(irTimeout) irTimeout--;
-	if(ireTimeout) ireTimeout--;
-	if(tick >= 100)
+	if(tick >= 10)
 	{
+		if(IO_DOOR_A_SIGNAL == 1)//±ÕËø
+		{
+			st_A.door = 0;
+			DB_ledAControl(0);
+		}	
+		else
+		{
+			st_A.door = 1;
+			DB_ledAControl(1);
+		}
+		if(IO_DOOR_B_SIGNAL == 1)//±ÕËø
+		{
+			st_B.door = 0;
+			DB_ledBControl(0);
+		}	
+		else
+		{
+			st_B.door = 1;
+			DB_ledBControl(1);
+		}
 		tick = 0;
-		if(second > 0)
-			second--;
 	}
 }
 

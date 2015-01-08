@@ -15,8 +15,6 @@
 
 
 static unsigned char cur_cabinet = BT_CABINET_NO;
-//static unsigned char cur_addr = 0,cur_cmd = 0,cur_para = 0xFF,cur_crc;
-
 
 
 
@@ -248,15 +246,15 @@ void BT_config_req()
 	{
 		BT_write_flash(BT_CABINET_A,recvbuf[PC_PARA]);
 		data1 = 0;data2 = 0;
-		recvbuf[PC_ADDR] = recvbuf[PC_PARA];
 		BT_read_flash();
+		recvbuf[PC_ADDR] = st_A.addr;
 	}
 	else if(recvbuf[PC_CMD] == BT_CONFIG_B_REQ)
 	{
 		BT_write_flash(BT_CABINET_B,recvbuf[PC_PARA]);
-		data1 = 0;data2 = 0;
-		recvbuf[PC_ADDR] = recvbuf[PC_PARA];
+		data1 = 0;data2 = 0;	
 		BT_read_flash();
+		recvbuf[PC_ADDR] = st_B.addr;
 	}
 	else if(recvbuf[PC_CMD] == BT_CONFIG_CHECK_REQ)
 	{
@@ -289,11 +287,10 @@ void BT_config_req()
 void BT_task(void)
 {
 	unsigned char res;
-	static unsigned char ir_choose = 0;
 	res = BT_recv_cmd();//接收数据 
 	if(res == 1)//有回应 并且数据正确 
 	{
-		delayMs(50);
+		delayMs(5);
 		if(recvbuf[PC_ADDR] == 0xFF) //配置模式
 		{
 			BT_config_req();
