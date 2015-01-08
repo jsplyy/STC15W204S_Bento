@@ -18,6 +18,8 @@
 ST_CABINET_DATA st_A,st_B;
 
 
+volatile unsigned char canOpen_A = 1,canOpen_B = 1;
+
 sbit IO_LED   = P0^7;
 
 
@@ -34,6 +36,26 @@ sbit IO_LED   = P0^7;
 
 
 
+
+#define DB_IR_DELAY() do{_nop_();_nop_();}while(0)
+
+
+
+
+
+void DB_delay100us()		//@11.0592MHz
+{
+	unsigned char i, j;
+
+	_nop_();
+	_nop_();
+	i = 2;
+	j = 15;
+	do
+	{
+		while (--j);
+	} while (--i);
+}
 
 /*********************************************************************************************************
 ** Function name:     	IAP_idle
@@ -164,8 +186,8 @@ void InitGpio(void)
     P2M0 = 0xFF;
     P3M1 = 0x50;
     P3M0 = 0xAC;
-	P5M1 = 0x10;
-	P5M0 = 0x20;
+	P5M1 = 0x00;
+	P5M0 = 0x00;
 
 	//p1.0
 
@@ -235,25 +257,19 @@ void SetRS485AsRxdMode(void)
 unsigned char DB_openAdoor()
 {
 	unsigned char i;
+
 	IO_DOOR_A_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
 	{
 		IO_DOOR_A_PULSE = 0;
 		_nop_();_nop_();
 		IO_DOOR_A_PULSE = 1;
-		ioTimeout = 10;//100ms
-		while(ioTimeout)
+		delayMs(10);
+		if(IO_DOOR_A_SIGNAL == 0)//开锁成功
 		{
-			if(IO_DOOR_A_SIGNAL == 0)//开锁成功
-			{
-				IO_DOOR_A_OUT = 0;
-				return 1;
-			}	
-			else
-			{
-				_nop_();
-			}
-		}
+			IO_DOOR_A_OUT = 0;
+			return 1;
+		}	
 		delayMs(500);
 	}
 	IO_DOOR_A_OUT = 0;	
@@ -270,17 +286,12 @@ unsigned char DB_openBdoor()
 		IO_DOOR_A_PULSE = 0;
 		_nop_();_nop_();
 		IO_DOOR_B_PULSE = 1;
-		ioTimeout = 30;//100ms
-		while(ioTimeout)
+		delayMs(10);
+		if(IO_DOOR_B_SIGNAL == 0)//
 		{
-			if(IO_DOOR_B_SIGNAL == 0)//
-			{
-				IO_DOOR_B_OUT = 0;
-				return 1;
-			}	
-			else
-				_nop_();
-		}
+			IO_DOOR_B_OUT = 0;
+			return 1;
+		}	
 		delayMs(500);
 	}
 	IO_DOOR_B_OUT = 0;	
@@ -297,51 +308,51 @@ unsigned char DB_openBdoor()
 *********************************************************************************************************/
 unsigned char DB_AgoodsFull()
 {
-	unsigned char rcx = 100;
+	unsigned char rcx = 50;//5ms延时
 	IO_IR_A_OUT = 1;
 	while(rcx--)
 	{
-		if(IO_IR_A_SIGNAL == 0)//not empty
+		if(IO_IR_A_SIGNAL == 1)//去抖
 		{
-			delayMs(2);
-			if(IO_IR_A_SIGNAL == 0) //可判断有货
+			DB_IR_DELAY();
+			if(IO_IR_A_SIGNAL == 1) //表示收到发射管的红外信号 即 无货
 			{
 				IO_IR_A_OUT = 0;
-				return 1;
+				return 0;
 			}
 		}
 		else
 		{
-			delayMs(1);
+			DB_delay100us();
 		}
 	}	
 	IO_IR_A_OUT = 0;			
-	return 0;
+	return 1;
 }
 
 
 unsigned char DB_BgoodsFull()
 {
-	unsigned char rcx = 100;
+	unsigned char rcx = 50;//5ms延时
 	IO_IR_B_OUT = 1;
 	while(rcx--)
 	{		
-		if(IO_IR_B_SIGNAL == 0)//not empty
+		if(IO_IR_B_SIGNAL == 1)//not empty
 		{
-			delayMs(2);
-			if(IO_IR_B_SIGNAL == 0) //可判断有货
+			DB_IR_DELAY();
+			if(IO_IR_B_SIGNAL == 1) //可判断有货
 			{
 				IO_IR_B_OUT = 0;
-				return 1;
+				return 0;
 			}			
 		}	
 		else
 		{
-			delayMs(1);
+			DB_delay100us();
 		}
 	}	
 	IO_IR_B_OUT = 0;		
-	return 0;
+	return 1;
 }
 
 

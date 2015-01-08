@@ -18,7 +18,7 @@ volatile unsigned char data tick;
 volatile unsigned int uartTimeout = 0;
 volatile unsigned int ioTimeout = 0;
 
-
+volatile unsigned char isspeacil = 0;
 
 
 /*********************************************************************************************************

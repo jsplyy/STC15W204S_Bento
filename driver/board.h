@@ -48,6 +48,7 @@ typedef struct _st_cabinet_data_{
 	unsigned char addr;
 	volatile unsigned char goods;
 	volatile unsigned char door;
+	volatile unsigned char istest;
 
 }ST_CABINET_DATA;
 

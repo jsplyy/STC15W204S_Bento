@@ -14,7 +14,7 @@
 
 extern volatile unsigned int uartTimeout;
 extern volatile unsigned int ioTimeout;
-
+extern volatile unsigned char isspeacil;
 
 void timer0Init(void);
 
