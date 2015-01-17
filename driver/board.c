@@ -210,6 +210,8 @@ void systemInit(void)
 	timer0Init();
 	uart1Init();
 	RS485_ENABLE = 1;//开启485发送模式
+	st_A.openTimeout = 6500;
+	st_B.openTimeout = 6500;
 }
 
 
@@ -264,15 +266,19 @@ unsigned char DB_openAdoor()
 		IO_DOOR_A_PULSE = 0;
 		_nop_();_nop_();
 		IO_DOOR_A_PULSE = 1;
-		delayMs(10);
+		delayMs(50);
 		if(IO_DOOR_A_SIGNAL == 0)//开锁成功
 		{
 			IO_DOOR_A_OUT = 0;
+			IO_DOOR_A_PULSE = 0;
+			st_A.openTimeout = 6000;
 			return 1;
 		}	
+		IO_DOOR_A_PULSE = 0;
 		delayMs(500);
 	}
 	IO_DOOR_A_OUT = 0;	
+	IO_DOOR_A_PULSE = 0;
 	return 0;
 	
 }
@@ -283,18 +289,22 @@ unsigned char DB_openBdoor()
 	IO_DOOR_B_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
 	{
-		IO_DOOR_A_PULSE = 0;
+		IO_DOOR_B_PULSE = 0;
 		_nop_();_nop_();
 		IO_DOOR_B_PULSE = 1;
-		delayMs(10);
+		delayMs(50);
 		if(IO_DOOR_B_SIGNAL == 0)//
 		{
 			IO_DOOR_B_OUT = 0;
+			IO_DOOR_B_PULSE = 0;
+			st_B.openTimeout = 6000;
 			return 1;
 		}	
+		IO_DOOR_B_PULSE = 0;
 		delayMs(500);
 	}
-	IO_DOOR_B_OUT = 0;	
+	IO_DOOR_B_OUT = 0;
+	IO_DOOR_B_PULSE = 0;	
 	return 0;
 }
 
@@ -308,8 +318,6 @@ unsigned char DB_openBdoor()
 *********************************************************************************************************/
 unsigned char DB_AgoodsFull()
 {
-	//unsigned char rcx = 10;// 1ms延时
-#if 1
 	unsigned char i,flag = 0;
 	for(i = 0; i < 3;i++)
 	{
@@ -327,29 +335,11 @@ unsigned char DB_AgoodsFull()
 		return 0;
 	else
 		return 1;
-#else
-	IO_IR_A_OUT = 1;
-	while(rcx--)
-	{
-		if(IO_IR_A_SIGNAL == 1) //表示收到发射管的红外信号 即 无货
-		{	
-			IO_IR_A_OUT = 0;
-			return 0;
-		}
-		else
-		{
-			DB_delay100us();
-		}
-	}	
-	IO_IR_A_OUT = 0;			
-	return 1;
-#endif
 }
 
 
 unsigned char DB_BgoodsFull()
 {
-
 	unsigned char i,flag = 0;
 	for(i = 0; i < 3;i++)
 	{
@@ -367,28 +357,6 @@ unsigned char DB_BgoodsFull()
 		return 0;
 	else
 		return 1;
-#if 0
-	unsigned char rcx = 50;//5ms延时
-	IO_IR_B_OUT = 1;
-	while(rcx--)
-	{		
-		if(IO_IR_B_SIGNAL == 1)//not empty
-		{
-			DB_IR_DELAY();
-			if(IO_IR_B_SIGNAL == 1) //可判断有货
-			{
-				IO_IR_B_OUT = 0;
-				return 0;
-			}			
-		}	
-		else
-		{
-			DB_delay100us();
-		}
-	}	
-	IO_IR_B_OUT = 0;		
-	return 1;
-#endif
 }
 
 

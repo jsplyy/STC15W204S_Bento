@@ -14,7 +14,6 @@
 
 volatile unsigned char data tick;
 
-
 volatile unsigned int uartTimeout = 0;
 volatile unsigned int ioTimeout = 0;
 
@@ -57,6 +56,8 @@ void timer0_ISR( void ) interrupt 1 using 1
 	tick++;
 	if(uartTimeout) uartTimeout--;
 	if(ioTimeout) ioTimeout--;
+	if(st_A.openTimeout)st_A.openTimeout--;
+	if(st_B.openTimeout)st_B.openTimeout--;
 	if(tick >= 10)
 	{
 		if(IO_DOOR_A_SIGNAL == 1)//闭锁
@@ -64,10 +65,19 @@ void timer0_ISR( void ) interrupt 1 using 1
 			st_A.door = 0;
 			DB_ledAControl(0);
 		}	
-		else
+		else //开锁了
 		{
-			st_A.door = 1;
-			DB_ledAControl(1);
+			if(st_A.door != 1) //状态有改变
+			{
+				st_A.openTimeout = 6000;
+				st_A.door = 1;
+			}
+			
+			if(st_A.openTimeout)
+					DB_ledAControl(1);
+			else
+					DB_ledAControl(0);
+			
 		}
 		if(IO_DOOR_B_SIGNAL == 1)//闭锁
 		{
@@ -76,8 +86,15 @@ void timer0_ISR( void ) interrupt 1 using 1
 		}	
 		else
 		{
-			st_B.door = 1;
-			DB_ledBControl(1);
+			if(st_B.door != 1)
+			{
+				st_B.openTimeout = 6000;
+				st_B.door = 1;
+			}		
+			if(st_B.openTimeout)
+				DB_ledBControl(1);
+			else
+				DB_ledBControl(0);
 		}
 		tick = 0;
 	}
