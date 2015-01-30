@@ -16,8 +16,6 @@
 
 
 ST_CABINET_DATA st_A,st_B;
-
-
 volatile unsigned char canOpen_A = 1,canOpen_B = 1;
 
 sbit IO_LED   = P0^7;
@@ -361,5 +359,36 @@ unsigned char DB_BgoodsFull()
 
 
 
+#if 0
+void STC_check_ISP(void)
+{
 
+	unsigned char ch,i = 0;
+	if(uart1IsNotEmpty())
+	{
+		while(uart1IsNotEmpty())
+		{
+			ch = uart1GetCh();
+			uart1PutCh(ch);
+			if(ch != isp_cmd[i++]) 
+				return;
+			else
+				if(i >= 8)//执行自定义命令
+				{
+					IAP_eraseSector(0x0000);
+					IAP_writeByte(BT_FLASH_CABINET_A, BT_ADDR_CABINET_A);
+					IAP_writeByte(BT_FLASH_CABINET_B, BT_ADDR_CABINET_B);	
+					IAP_CONTR = 0x60;//软件重启
+					return;
+				}
+			_nop_();
+		}
+		
+		
+		
+		
+	}
+}
+
+#endif
 

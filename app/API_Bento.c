@@ -44,8 +44,15 @@ static unsigned char recvbuf[8] = {0};
 *********************************************************************************************************/
 void BT_read_flash(void)
 {
-	st_A.addr = IAP_readByte(0x0000);
-	st_B.addr = IAP_readByte(0x0004);
+	unsigned char crc;
+	st_A.addr = IAP_readByte(BT_FLASH_ADRR);
+	st_B.addr = IAP_readByte(BT_FLASH_ADRR + 4);
+	crc = IAP_readByte(BT_FLASH_ADRR + 8);
+	if(crc != 0xE5)
+	{
+		st_A.addr = 31;
+		st_B.addr = 21;
+	}	
 }
 
 
@@ -65,8 +72,9 @@ void BT_write_flash(unsigned char cabinet,unsigned char addr)
 		st_B.addr = addr;
 	else return;
 	IAP_eraseSector(0x0000);
-	IAP_writeByte(0x0000, st_A.addr);
-	IAP_writeByte(0x00004, st_B.addr);
+	IAP_writeByte(BT_FLASH_ADRR, st_A.addr);
+	IAP_writeByte(BT_FLASH_ADRR + 4, st_B.addr);
+	IAP_writeByte(BT_FLASH_ADRR + 8, 0xE5);
 }
 
 
@@ -139,8 +147,9 @@ unsigned char BT_recv_cmd()
 		return 0;
 	recvbuf[index++] = uart1GetCh();
 	if(recvbuf[PC_HEAD] != BT_START)
+	{
 		return 2;
-	
+	}
 	uartTimeout = 8; //接收剩余数据//200ms超时
 	while(uartTimeout)
 	{

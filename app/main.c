@@ -12,9 +12,7 @@
 #include "..\config.h"
 #include "API_Bento.h"
 
-
-
-
+#define BT_VERSION_INFO "YOC:V1.4\n"
 
 /*********************************************************************************************************
 ** Function name:     	main
@@ -26,17 +24,21 @@
 
 void main(void)
 {	
+	
 	systemInit();
 	BT_read_flash();
 	delayMs(1000);
-	
-	SetRS485AsTxdMode();
-	uart1PutStr("I'm YOC...\r\n",sizeof("I'm YOC...\r\n"));
+	SetRS485AsTxdMode();	
+	uart1PutStr(BT_VERSION_INFO,sizeof(BT_VERSION_INFO));
 	SetRS485AsRxdMode();
+
+	
+	
 	while(1)
 	{
 		BT_task();
 		delayMs(5);
+		
 		
 	}
 			

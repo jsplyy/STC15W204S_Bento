@@ -41,6 +41,12 @@ sbit IO_LED_B		= P1^2;//设为高电平开照明灯，低电平关灯。
 
 #define BT_OPEN_RCX		3
 
+#define BT_FLASH_ADRR 	0x0000
+
+#define BT_ADDR_CABINET_A 31
+#define BT_ADDR_CABINET_B 21
+
+
 
 
 typedef struct _st_cabinet_data_{
@@ -72,7 +78,7 @@ void delayMs(unsigned int ms);
 void systemInit(void);
 void SetRS485AsTxdMode(void);
 void SetRS485AsRxdMode(void);
-
+//void STC_check_ISP(void);
 
 
 

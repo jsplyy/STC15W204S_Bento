@@ -85,7 +85,7 @@ void uart1PutCh(unsigned char ch)
 
 void uart1PutStr(unsigned char *str,unsigned int len)
 {
-	unsigned int i;
+	unsigned char i;
 	for(i = 0;i < len;i++)
 		uart1PutCh(str[i]);				
 }
@@ -152,13 +152,12 @@ void trace(unsigned char *format,...)
 {
 
 	va_list arg_ptr;
-	unsigned char  StringTemp[16];
-	unsigned int  len;
+	unsigned char  buf[8];
+	unsigned char  len;
 	va_start(arg_ptr,format);
-	len = vsprintf((char *)StringTemp,(const char *)format,arg_ptr);
+	len = vsprintf((char *)buf,(const char *)format,arg_ptr);
 	va_end(arg_ptr);
-
-	uart1PutStr(StringTemp,len);
+	uart1PutStr(buf,len);
 
 }
 
