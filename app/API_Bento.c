@@ -18,21 +18,6 @@ static unsigned char cur_cabinet = BT_CABINET_NO;
 
 
 
-#define PC_HEAD 		0
-#define PC_ADDR			1
-#define PC_CMD			2
-#define PC_PARA			3
-#define PC_CRC			4
-#define PC_END			5
-#define PC_LEN			6
-
-
-static unsigned char recvbuf[8] = {0};
-
-
-
-
-
 
 
 /*********************************************************************************************************
@@ -94,7 +79,6 @@ unsigned char BT_send_data(unsigned char data1,unsigned char data2)
 {
 	unsigned char crc = 0;
 	crc = recvbuf[PC_ADDR] + recvbuf[PC_CMD] + data1  + data2;
-	uart1Clear();
 	SetRS485AsTxdMode();
 	uart1PutCh(BT_START);	//同步码
 	uart1PutCh(recvbuf[PC_ADDR]);		//柜子号码
@@ -117,7 +101,6 @@ unsigned char BT_send_data(unsigned char data1,unsigned char data2)
 *********************************************************************************************************/
 unsigned char BT_send_state()
 {
-	uart1Clear();
 	SetRS485AsTxdMode();
 	uart1PutCh(BT_START);	//同步码
 	uart1PutCh(st_A.addr);		//柜子A号码
@@ -142,38 +125,12 @@ unsigned char BT_send_state()
 *********************************************************************************************************/
 unsigned char BT_recv_cmd()
 {
-	unsigned char index = 0,temp;
-	if(!uart1IsNotEmpty())
+	if(uart1_isRequest())
+	{
+		return 1;
+	}
+	else
 		return 0;
-	recvbuf[index++] = uart1GetCh();
-	if(recvbuf[PC_HEAD] != BT_START)
-	{
-		return 2;
-	}
-	uartTimeout = 8; //接收剩余数据//200ms超时
-	while(uartTimeout)
-	{
-		if(uart1IsNotEmpty())
-		{
-			recvbuf[index++] = uart1GetCh();
-			if(index >= PC_LEN && recvbuf[PC_END] == BT_PC_STOP )//收到结束码 且长度正确
-			{
-				temp = recvbuf[PC_ADDR] +recvbuf[PC_CMD]+recvbuf[PC_PARA];
-				if(temp == recvbuf[PC_CRC])//校验码也正确 白哦是收到正确指令
-				{
-					return 1;				
-				}
-				else 
-					return 2;
-			}
-			else
-				_nop_();
-			
-		}
-		else
-			_nop_();
-	}
-	return 2;
 }
 
 
@@ -242,7 +199,6 @@ void BT_handle_req()
 void BT_config_req()
 {
 	unsigned char data1,data2;
-	//static unsigned char testA = 0,testB = 0;
 	if(recvbuf[PC_CMD] == BT_CONFIG_START_REQ)
 	{
 		data1 = rand();
@@ -315,7 +271,6 @@ void BT_task(void)
 	res = BT_recv_cmd();//接收数据 
 	if(res == 1)//有回应 并且数据正确 
 	{
-		//delayMs(5);
 		if(recvbuf[PC_ADDR] == 0xFF) //配置模式
 		{
 			BT_config_req();
@@ -326,28 +281,11 @@ void BT_task(void)
 		}
 		else  //不是本机的命令直接抛弃
 			_nop_();
+
+		uart1_clear();
 	}
 	else
 		_nop_();
-
-	
-#if 0
-	if(irTimeout == 0)
-	{
-		if(ir_choose == 0)
-		{
-			ir_choose = 1;
-			DB_AgoodsFull();
-		}
-		else 
-		{
-			ir_choose = 0;
-			DB_BgoodsFull();
-		}
-		irTimeout = 50;//100ms扫描
-		
-	}
-#endif
 
 }
 

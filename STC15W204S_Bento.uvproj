@@ -44,7 +44,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\bin\</OutputDirectory>
-          <OutputName>STC15W204S_Bento</OutputName>
+          <OutputName>STC15W204S_Bento_1_5</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>

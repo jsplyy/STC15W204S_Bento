@@ -13,16 +13,17 @@
 #include <stdarg.h>
 
 
-#define BUF_SIZE 	    16 
+
 #define FOSC 			11059200L 
 
-unsigned char    uart1RxBuf[BUF_SIZE];//接收缓冲区
-unsigned char    uart1Rd;//缓冲区读索引
-unsigned char    uart1Wd;//缓冲区写索引
 
+//unsigned char uartbuf[BUF_SIZE] = {0};//接收缓冲区
+unsigned char recvbuf[BUF_SIZE] = {0};//接收缓冲区
+volatile unsigned char tx;//缓冲区写索引
+volatile unsigned char isRequest = 0;
 unsigned char uart1Init(void)
 {
-	uart1Clear();
+	uart1_clear();
 	SCON  = 0X50; 		//8位可变波特率，无奇偶校验	
 	//BRT   = -(FCLIK/32/UART1_BAUD);
 	AUXR  = 0x15; 
@@ -33,22 +34,62 @@ unsigned char uart1Init(void)
 	AUXR |= 0x10;			//start timer2
 	ES    =	1;   			// 允许串口1中断
 	EA    = 1;   		// 开总中断
+
 	
 	return 1;
 }
 
+
+
+
+
 void uart1_isr( void ) interrupt 4 using 1 
 {
-	if(RI)//recv isr
-	{
-		RI = 0;
-		uart1RxBuf[uart1Wd] = SBUF;
-		uart1Wd = (++uart1Wd) % BUF_SIZE;
-	}
+	unsigned char temp;
+
 	if(TI)
 	{
 		TI = 0;
+	}	
+	if(RI)//recv isr
+	{
+		RI = 0;
+		temp = SBUF;	
+		if(isRequest == 1)
+			return;
+		if(temp == BT_START && tx == 0)//开头
+		{
+			recvbuf[tx++] = temp;
+		}
+		else
+		{
+			if(tx > 0)//继续接受数据
+			{
+				recvbuf[tx++] = temp;
+				if(tx >= PC_LEN)//收满数据
+				{
+					if(recvbuf[PC_END] == BT_PC_STOP)
+					{
+						temp = recvbuf[PC_ADDR]+recvbuf[PC_CMD]+recvbuf[PC_PARA];
+						if(temp == recvbuf[PC_CRC])//校验正确
+						{
+							if((recvbuf[PC_ADDR] == st_A.addr) || 
+								(recvbuf[PC_ADDR] == st_B.addr) || 
+								(recvbuf[PC_ADDR] == 0xFF))//视为本机命令
+							{																
+								isRequest = 1;																
+							}
+						}
+					}	
+					tx = 0;
+				}
+				
+			}
+			
+		}
+		
 	}
+	
 
 }
 
@@ -75,20 +116,6 @@ void uart1PutCh(unsigned char ch)
 
 
 
-/*********************************************************************************************************
-** Function name:     	uartPutStr
-** Descriptions:	    发送字符串
-** input parameters:    str 发送字符串指针 len 发送长度
-** output parameters:   无
-** Returned value:      无
-*********************************************************************************************************/
-
-void uart1PutStr(unsigned char *str,unsigned int len)
-{
-	unsigned char i;
-	for(i = 0;i < len;i++)
-		uart1PutCh(str[i]);				
-}
 
 /*********************************************************************************************************
 ** Function name:     	uart1IsNotEmpty
@@ -97,28 +124,11 @@ void uart1PutStr(unsigned char *str,unsigned int len)
 ** output parameters:   无
 ** Returned value:      无
 *********************************************************************************************************/
-unsigned char uart1IsNotEmpty(void)
+unsigned char uart1_isRequest(void)
 {
-	if(uart1Rd == uart1Wd) return 0;
-	else	return 1;
+	return (isRequest);
 }
 
-/*********************************************************************************************************
-** Function name:     	uartGetChar
-** Descriptions:	    接收一字节数据
-** input parameters:    无
-** output parameters:   无
-** Returned value:      无
-*********************************************************************************************************/
-
-unsigned char uart1GetCh(void)
-{
-	unsigned char ch;
-	ch =  uart1RxBuf[uart1Rd];
-	uart1RxBuf[uart1Rd] = 0;	
-	uart1Rd = (++uart1Rd) % BUF_SIZE;
-	return ch;
-}
 
 
 
@@ -130,36 +140,18 @@ unsigned char uart1GetCh(void)
 ** Returned value:      无
 *********************************************************************************************************/
 
-void uart1Clear(void)
+void uart1_clear(void)
 {
-	uart1Wd = 0;
-	uart1Rd = 0;
+	tx = 0;
+	isRequest = 0;
 }
 
 
 
 
 
-/*********************************************************************************************************
-** Function name:	    Trace
-** Descriptions:	    调试Trace
-** input parameters:    无
-** output parameters:   无
-** Returned value:      无
-*********************************************************************************************************/
-#if (BT_DEBUG == 1)
-void trace(unsigned char *format,...)
-{
 
-	va_list arg_ptr;
-	unsigned char  buf[8];
-	unsigned char  len;
-	va_start(arg_ptr,format);
-	len = vsprintf((char *)buf,(const char *)format,arg_ptr);
-	va_end(arg_ptr);
-	uart1PutStr(buf,len);
 
-}
 
-#endif	
+
 
