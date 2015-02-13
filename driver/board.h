@@ -15,8 +15,29 @@ sbit RS485_74HC123_nB 	= P1^1; 	//上升沿触发
 /*********************************************************************************************************
 **设备IO定义
 *********************************************************************************************************/
+
+sbit IO_DOOR_B_OUT    	= P3^7;//A柜 门IO口
+sbit IO_DOOR_B_PULSE    = P1^1;//A柜 门IO口 脉冲
+
+sbit IO_DOOR_B_SIGNAL   = P3^6; //低电平为开锁，高电平为 闭锁
+sbit IO_IR_B_OUT		= P5^5;//先打开红外发射管（P5.5设为高电平）检测完后要把P5.5发射管设为低电平。
+sbit IO_IR_B_SIGNAL		= P5^4;//检测（P5.4电平）高电平为无货，低电平为有货物
+sbit IO_LED_B		= P1^5;//P1.5设为高电平开照明灯，低电平关灯。
+
+
+
+sbit IO_DOOR_A_OUT    	= P3^3;//B柜 门IO口
+sbit IO_DOOR_A_PULSE    = P1^1;//B柜 门IO口 脉冲
+
+sbit IO_DOOR_A_SIGNAL   = P1^0; //B低电平为开锁成功，高电平为开锁失败
+sbit IO_IR_A_OUT		= P1^4;//
+sbit IO_IR_A_SIGNAL		= P1^3;//B检测高电平为无货，低电平为有货物
+sbit IO_LED_A		= P1^2;//设为高电平开照明灯，低电平关灯。
+
+#if 0
 sbit IO_DOOR_A_OUT    	= P3^7;//A柜 门IO口
 sbit IO_DOOR_A_PULSE    = P1^1;//A柜 门IO口 脉冲
+
 sbit IO_DOOR_A_SIGNAL   = P3^6; //低电平为开锁，高电平为 闭锁
 sbit IO_IR_A_OUT		= P5^5;//先打开红外发射管（P5.5设为高电平）检测完后要把P5.5发射管设为低电平。
 sbit IO_IR_A_SIGNAL		= P5^4;//检测（P5.4电平）高电平为无货，低电平为有货物
@@ -26,12 +47,13 @@ sbit IO_LED_A		= P1^5;//P1.5设为高电平开照明灯，低电平关灯。
 
 sbit IO_DOOR_B_OUT    	= P3^3;//B柜 门IO口
 sbit IO_DOOR_B_PULSE    = P1^1;//B柜 门IO口 脉冲
+
 sbit IO_DOOR_B_SIGNAL   = P1^0; //B低电平为开锁成功，高电平为开锁失败
 sbit IO_IR_B_OUT		= P1^4;//
 sbit IO_IR_B_SIGNAL		= P1^3;//B检测高电平为无货，低电平为有货物
 sbit IO_LED_B		= P1^2;//设为高电平开照明灯，低电平关灯。
 
-
+#endif
 
 // A B两柜地址
 #define BT_CABINET_A	0

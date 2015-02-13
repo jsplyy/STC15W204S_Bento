@@ -14,7 +14,7 @@
 
 
 
-#define FOSC 			11059200L 
+#define FOSC 			11059200L //33177600//22118400 // 
 
 
 //unsigned char uartbuf[BUF_SIZE] = {0};//Ω” ’ª∫≥Â«¯
