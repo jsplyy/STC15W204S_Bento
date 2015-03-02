@@ -38,6 +38,13 @@ sbit IO_LED   = P0^7;
 #define DB_IR_DELAY() do{_nop_();_nop_();}while(0)
 
 
+void Delay10us()		//@11.0592MHz
+{
+	unsigned char i;
+	_nop_();
+	i = 25;
+	while (--i);
+}
 
 
 
@@ -316,17 +323,21 @@ unsigned char DB_openBdoor()
 *********************************************************************************************************/
 unsigned char DB_AgoodsFull()
 {
-	unsigned char i,flag = 0;
+	unsigned char i,j,flag = 0;
 	for(i = 0; i < 3;i++)
 	{
 		IO_IR_A_OUT = 1;
-		DB_delay100us();
-		if(IO_IR_A_SIGNAL == 1)
+		for(j = 0;j < 30;j++)
 		{
-			flag++;
+			if(IO_IR_A_SIGNAL == 1)//检测到了发射管的信号 直接退出
+			{
+				flag++;
+				break;
+			}
+			Delay10us();
 		}
 		IO_IR_A_OUT = 0;
-		delayMs(1);
+		delayMs(2);
 	}
 	IO_IR_A_OUT = 0;
 	if(flag >= 3)//三次接收到 红外信号 证明无货
@@ -338,17 +349,22 @@ unsigned char DB_AgoodsFull()
 
 unsigned char DB_BgoodsFull()
 {
-	unsigned char i,flag = 0;
+	unsigned char i,j,flag = 0;
+	
 	for(i = 0; i < 3;i++)
 	{
 		IO_IR_B_OUT = 1;
-		DB_delay100us();
-		if(IO_IR_B_SIGNAL == 1)
+		for(j = 0;j < 30;j++)
 		{
-			flag++;
+			if(IO_IR_B_SIGNAL == 1)
+			{
+				flag++;
+				break;
+			}
+			Delay10us();
 		}
 		IO_IR_B_OUT = 0;
-		delayMs(1);
+		delayMs(2);
 	}
 	IO_IR_B_OUT = 0;
 	if(flag >= 3)//三次接收到 红外信号 证明无货

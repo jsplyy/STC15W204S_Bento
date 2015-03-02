@@ -61,7 +61,7 @@ sbit IO_LED_B		= P1^2;//设为高电平开照明灯，低电平关灯。
 #define BT_CABINET_NO	0xAA
 #define BT_CABINET_CON	0xFF  //配置命令
 
-#define BT_OPEN_RCX		3
+#define BT_OPEN_RCX		5
 
 #define BT_FLASH_ADRR 	0x0000
 
