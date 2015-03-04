@@ -278,7 +278,7 @@ unsigned char DB_openAdoor()
 			return 1;
 		}	
 		IO_DOOR_A_PULSE = 0;
-		delayMs(500);
+		delayMs(300);
 	}
 	IO_DOOR_A_OUT = 0;	
 	IO_DOOR_A_PULSE = 0;
@@ -304,7 +304,7 @@ unsigned char DB_openBdoor()
 			return 1;
 		}	
 		IO_DOOR_B_PULSE = 0;
-		delayMs(500);
+		delayMs(300);
 	}
 	IO_DOOR_B_OUT = 0;
 	IO_DOOR_B_PULSE = 0;	
@@ -335,11 +335,7 @@ unsigned char DB_AgoodsFull()
 			Delay10us();
 		}
 		IO_IR_A_OUT = 0;
-		DB_delay100us();
-		DB_delay100us();
-		DB_delay100us();
-		DB_delay100us();
-		DB_delay100us();
+		delayMs(1);
 	}
 	IO_IR_A_OUT = 0;
 	if(flag >= 2)//三次接收到 红外信号 证明无货
@@ -365,12 +361,9 @@ unsigned char DB_BgoodsFull()
 			}
 			Delay10us();
 		}
+		
 		IO_IR_B_OUT = 0;
-		DB_delay100us();
-		DB_delay100us();
-		DB_delay100us();
-		DB_delay100us();
-		DB_delay100us();
+		delayMs(1);
 	}
 	IO_IR_B_OUT = 0;
 	if(flag >= 2)//三次接收到 红外信号 证明无货
