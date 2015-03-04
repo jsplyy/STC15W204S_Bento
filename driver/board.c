@@ -325,7 +325,7 @@ unsigned char DB_AgoodsFull()
 	for(i = 0; i < 3;i++)
 	{
 		IO_IR_A_OUT = 1;
-		for(j = 0;j < 20;j++)
+		for(j = 0;j < 30;j++)
 		{
 			if(IO_IR_A_SIGNAL == 1)//检测到了发射管的信号 直接退出
 			{
@@ -356,7 +356,7 @@ unsigned char DB_BgoodsFull()
 	for(i = 0; i < 3;i++)
 	{
 		IO_IR_B_OUT = 1;
-		for(j = 0;j < 20;j++)
+		for(j = 0;j < 30;j++)
 		{
 			if(IO_IR_B_SIGNAL == 1)
 			{
