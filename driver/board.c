@@ -278,7 +278,7 @@ unsigned char DB_openAdoor()
 			return 1;
 		}	
 		IO_DOOR_A_PULSE = 0;
-		delayMs(300);
+		delayMs(500);
 	}
 	IO_DOOR_A_OUT = 0;	
 	IO_DOOR_A_PULSE = 0;
@@ -304,7 +304,7 @@ unsigned char DB_openBdoor()
 			return 1;
 		}	
 		IO_DOOR_B_PULSE = 0;
-		delayMs(300);
+		delayMs(500);
 	}
 	IO_DOOR_B_OUT = 0;
 	IO_DOOR_B_PULSE = 0;	
