@@ -269,7 +269,7 @@ unsigned char DB_openAdoor()
 		IO_DOOR_A_PULSE = 0;
 		_nop_();_nop_();
 		IO_DOOR_A_PULSE = 1;
-		delayMs(50);
+		delayMs(500);
 		if(IO_DOOR_A_SIGNAL == 0)//¿ªËø³É¹¦
 		{
 			IO_DOOR_A_OUT = 0;
@@ -295,7 +295,7 @@ unsigned char DB_openBdoor()
 		IO_DOOR_B_PULSE = 0;
 		_nop_();_nop_();
 		IO_DOOR_B_PULSE = 1;
-		delayMs(50);
+		delayMs(500);
 		if(IO_DOOR_B_SIGNAL == 0)//
 		{
 			IO_DOOR_B_OUT = 0;
