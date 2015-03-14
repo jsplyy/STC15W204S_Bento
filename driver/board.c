@@ -60,6 +60,10 @@ void DB_delay100us()		//@11.0592MHz
 	} while (--i);
 }
 
+
+
+
+
 /*********************************************************************************************************
 ** Function name:     	IAP_idle
 ** Descriptions:	   	关闭IAP功能
@@ -183,7 +187,7 @@ void InitGpio(void)
 	P0M0 = 0xFF;
 
     P1M1 = 0x00;	// 
-    P1M0 = 0x34;	//
+    P1M0 = 0x36;	//
     
     P2M1 = 0x00;
     P2M0 = 0xFF;
@@ -228,11 +232,15 @@ void systemInit(void)
 void SetRS485AsTxdMode(void)
 {	
 	RS485_ENABLE = 1;
-	//_nop_();_nop_();
 	RS485_74HC123_nB= 0;
-	_nop_();_nop_();
+	DB_delay100us();
 	RS485_74HC123_nB = 1;
-	_nop_();	
+	DB_delay100us();
+	DB_delay100us();
+	RS485_74HC123_nB= 0;
+	DB_delay100us();
+	DB_delay100us();
+	RS485_74HC123_nB = 1;
 }
 
 
@@ -261,54 +269,64 @@ void SetRS485AsRxdMode(void)
 *********************************************************************************************************/
 unsigned char DB_openAdoor()
 {
-	unsigned char i;
-
+	unsigned char i,flag = 0;
+	unsigned int j;
 	IO_DOOR_A_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
-	{
-		IO_DOOR_A_PULSE = 0;
-		_nop_();_nop_();
-		IO_DOOR_A_PULSE = 1;
-		delayMs(500);
-		if(IO_DOOR_A_SIGNAL == 0)//开锁成功
-		{
-			IO_DOOR_A_OUT = 0;
+	{	
+		for(j = 0;j < 2000;j++){
 			IO_DOOR_A_PULSE = 0;
+			Delay10us();
+			IO_DOOR_A_PULSE = 1;
+			if(IO_DOOR_A_SIGNAL == 0)//开锁成功
+				flag = 1;
+			DB_delay100us();
+			DB_delay100us();
+		}		
+		if(flag == 1)//开锁成功
+		{
 			st_A.openTimeout = 6000;
-			return 1;
-		}	
-		IO_DOOR_A_PULSE = 0;
-		delayMs(500);
+			break;
+		}
+		else
+			delayMs(500);
 	}
+
+	
 	IO_DOOR_A_OUT = 0;	
 	IO_DOOR_A_PULSE = 0;
-	return 0;
+	return flag;
 	
 }
 
 unsigned char DB_openBdoor()
 {
-	unsigned char i;
+	unsigned char i,flag = 0;
+	unsigned int j;
 	IO_DOOR_B_OUT = 1;
 	for(i = 0;i < BT_OPEN_RCX;i++)
 	{
-		IO_DOOR_B_PULSE = 0;
-		_nop_();_nop_();
-		IO_DOOR_B_PULSE = 1;
-		delayMs(500);
-		if(IO_DOOR_B_SIGNAL == 0)//
-		{
-			IO_DOOR_B_OUT = 0;
+		for(j = 0;j < 2000;j++){
 			IO_DOOR_B_PULSE = 0;
+			Delay10us();
+			IO_DOOR_B_PULSE = 1;
+			if(IO_DOOR_B_SIGNAL == 0)//开锁成功
+				flag = 1;
+			DB_delay100us();
+			DB_delay100us();
+		}		
+		if(flag == 1)//开锁成功
+		{
 			st_B.openTimeout = 6000;
-			return 1;
-		}	
-		IO_DOOR_B_PULSE = 0;
-		delayMs(500);
+			break;
+		}
+		else
+			delayMs(500);
+		
 	}
 	IO_DOOR_B_OUT = 0;
 	IO_DOOR_B_PULSE = 0;	
-	return 0;
+	return flag;
 }
 
 
@@ -321,89 +339,47 @@ unsigned char DB_openBdoor()
 *********************************************************************************************************/
 unsigned char DB_AgoodsFull()
 {
-	unsigned char i,j,flag = 0;
-	for(i = 0; i < 3;i++)
-	{
+	unsigned char i,j,rcx = 0,flag = 0;
+	for(i = 0; i < 3;i++){
 		IO_IR_A_OUT = 1;
-		for(j = 0;j < 30;j++)
-		{
-			if(IO_IR_A_SIGNAL == 1)//检测到了发射管的信号 直接退出
-			{
-				flag++;
-				break;
+		for(j = 0;j < 30;j++){
+			if(IO_IR_A_SIGNAL == 1){
+				rcx = 1;
 			}
 			Delay10us();
 		}
+		if(rcx) flag++;
+		rcx = 0;
 		IO_IR_A_OUT = 0;
 		delayMs(1);
 	}
 	IO_IR_A_OUT = 0;
-	if(flag >= 2)//三次接收到 红外信号 证明无货
-		return 0;
-	else
-		return 1;
+	return (flag >= 2) ?  0 : 1;
+	
 }
 
 
 unsigned char DB_BgoodsFull()
 {
-	unsigned char i,j,flag = 0;
+	unsigned char i,j,flag = 0,t = 0;
 	
 	for(i = 0; i < 3;i++)
 	{
 		IO_IR_B_OUT = 1;
-		for(j = 0;j < 30;j++)
-		{
-			if(IO_IR_B_SIGNAL == 1)
-			{
-				flag++;
-				break;
+		for(j = 0;j < 30;j++){
+			if(IO_IR_B_SIGNAL == 1){
+				t = 1;
 			}
 			Delay10us();
 		}
-		
+		if(t == 1) flag++;
+		t = 0;
 		IO_IR_B_OUT = 0;
 		delayMs(1);
 	}
 	IO_IR_B_OUT = 0;
-	if(flag >= 2)//三次接收到 红外信号 证明无货
-		return 0;
-	else
-		return 1;
+	return (flag >= 2) ?  0 : 1;
 }
 
 
-
-#if 0
-void STC_check_ISP(void)
-{
-
-	unsigned char ch,i = 0;
-	if(uart1IsNotEmpty())
-	{
-		while(uart1IsNotEmpty())
-		{
-			ch = uart1GetCh();
-			uart1PutCh(ch);
-			if(ch != isp_cmd[i++]) 
-				return;
-			else
-				if(i >= 8)//执行自定义命令
-				{
-					IAP_eraseSector(0x0000);
-					IAP_writeByte(BT_FLASH_CABINET_A, BT_ADDR_CABINET_A);
-					IAP_writeByte(BT_FLASH_CABINET_B, BT_ADDR_CABINET_B);	
-					IAP_CONTR = 0x60;//软件重启
-					return;
-				}
-			_nop_();
-		}
-		
-		
-		
-		
-	}
-}
-
-#endif
 
